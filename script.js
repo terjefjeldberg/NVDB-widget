@@ -4,12 +4,14 @@ StreamBIM.onReady(() => {
 
     // Lytter etter klikk på 3D-objekter
     StreamBIM.onObjectSelected((event, objectId) => {
-        event.preventDefault(); // Forhindrer at StreamBIM tar over klikk-hendelsen
-        console.log("Objekt klikket:", objectId);
+    event.preventDefault(); // Forhindrer standard klikk-hendelse
+    event.stopPropagation(); // Stopper hendelsen fra å boble opp
+    console.log("Objekt klikket:", objectId);
 
-        // Her kan du hente NVDB-data basert på objekt-ID
-        const nvdbCode = hentNVDBKodeFraObjektId(objectId); // Erstatt med din logikk
-        fetchNVDBData(nvdbCode); // Henter NVDB-data for det valgte objektet
+    // Henter NVDB-data basert på objekt-ID
+    const nvdbCode = hentNVDBKodeFraObjektId(objectId); // Erstatt med din logikk
+    fetchNVDBData(nvdbCode); // Henter NVDB-data for det valgte objektet
+
     });
 });
 
