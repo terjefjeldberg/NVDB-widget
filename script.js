@@ -3,7 +3,8 @@ StreamBIM.onReady(() => {
     console.log("StreamBIM API er klar!");
 
     // Lytter etter klikk på 3D-objekter
-    StreamBIM.onObjectSelected((objectId) => {
+    StreamBIM.onObjectSelected((event, objectId) => {
+        event.preventDefault(); // Forhindrer at StreamBIM tar over klikk-hendelsen
         console.log("Objekt klikket:", objectId);
 
         // Her kan du hente NVDB-data basert på objekt-ID
