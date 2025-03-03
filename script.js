@@ -1,27 +1,40 @@
-StreamBIM.connect({
-  pickedObject: function (result) {
-    console.log('Clicked object:', result.guid);
+function onStreamBimReady(api) {
+    console.log("StreamBIM is ready!");
     
-    // Hente objektinformasjon basert på GUID
-    StreamBIM.getObjectInfo(result.guid).then((objectInfo) => {
-      if (objectInfo && objectInfo.properties) {
-        // Sjekke om egenskapssettet "0_element" finnes
-        const propertiesSet = objectInfo.properties["0_element"];
-        if (propertiesSet) {
-          // Hente verdien til "V770_Kode"
-          const nvdbKode = propertiesSet["V770_Kode"];
-          if (nvdbKode) {
-            console.log('NVDB Kode:', nvdbKode);
-            document.getElementById('nvdbKodeDisplay').innerText = `NVDB Kode: ${nvdbKode}`;
-          } else {
-            console.log('Egenskap "V770_Kode" ikke funnet.');
-          }
-        } else {
-          console.log('Egenskapsett "0_element" ikke funnet.');
+    api.events.selectionChanged.subscribe(async (selectedObjects) => {
+        if (selectedObjects.length === 0) {
+            console.log("Ingen objekt valgt.");
+            return;
         }
-      }
-    }).catch((error) => {
-      console.error('Feil ved henting av objektinfo:', error);
+
+        const objectId = selectedObjects[0].objectId;
+
+        try {
+            const properties = await api.getProperties(objectId);
+            console.log("Egenskaper for objekt:", properties);
+
+            // Finn "V770_Kode" under "0_element"
+            let v770Kode = null;
+            properties.forEach(propSet => {
+                if (propSet.name === "0_element") {
+                    propSet.properties.forEach(prop => {
+                        if (prop.name === "V770_Kode") {
+                            v770Kode = prop.value;
+                        }
+                    });
+                }
+            });
+
+            if (v770Kode !== null) {
+                console.log("V770_Kode:", v770Kode);
+                document.getElementById("output").textContent = `V770_Kode: ${v770Kode}`;
+            } else {
+                console.log("Fant ikke V770_Kode på objektet.");
+                document.getElementById("output").textContent = "Ingen V770_Kode funnet.";
+            }
+
+        } catch (error) {
+            console.error("Feil ved henting av egenskaper:", error);
+        }
     });
-  }
-});
+}
