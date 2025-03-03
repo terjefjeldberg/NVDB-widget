@@ -1,4 +1,18 @@
-// Dette er et eksempel på hvordan du kan hente NVDB-data via API
+// Vent til StreamBIM API-et er klart
+StreamBIM.onReady(() => {
+    console.log("StreamBIM API er klar!");
+
+    // Lytter etter klikk på 3D-objekter
+    StreamBIM.onObjectSelected((objectId) => {
+        console.log("Objekt klikket:", objectId);
+
+        // Her kan du hente NVDB-data basert på objekt-ID
+        const nvdbCode = hentNVDBKodeFraObjektId(objectId); // Erstatt med din logikk
+        fetchNVDBData(nvdbCode); // Henter NVDB-data for det valgte objektet
+    });
+});
+
+// Funksjon for å hente NVDB-data via API
 async function fetchNVDBData(nvdbCode) {
     const apiUrl = `https://api.bsdd.buildingsmart.org/api/v1/NVDB/${nvdbCode}`;
     try {
@@ -9,16 +23,6 @@ async function fetchNVDBData(nvdbCode) {
         console.error('Feil ved henting av NVDB-data:', error);
     }
 }
-
-// Eksempel: Hent NVDB-data for en spesifikk kode
-fetchNVDBData('12345'); // Erstatt '12345' med faktisk NVDB-kode
-
-// Lytter etter klikk på 3D-objekter i StreamBIM
-window.addEventListener('streamBIMObjectClicked', (event) => {
-    const objectId = event.detail.objectId; // Henter objekt-ID
-    const nvdbCode = hentNVDBKodeFraObjektId(objectId); // Erstatt med din logikk
-    fetchNVDBData(nvdbCode); // Henter NVDB-data for det valgte objektet
-});
 
 // Dummy-funksjon for å hente NVDB-kode basert på objekt-ID
 function hentNVDBKodeFraObjektId(objectId) {
