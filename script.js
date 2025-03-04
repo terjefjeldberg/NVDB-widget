@@ -1,33 +1,42 @@
 function onStreamBimReady(api) {
     console.log("StreamBIM is ready!");
 
-    // Abonner på 'pickedObject' event (som er dokumentert i demo-widgeten)
     api.events.pickedObject.subscribe(async (result) => {
         const objectId = result.guid; // GUID for det klikkede objektet
 
         try {
-            // Hent objektinformasjon (dokumentert i demo-widgeten)
             const objectInfo = await api.getObjectInfo(objectId);
             console.log("Objektinformasjon:", objectInfo);
 
-            // Finn "V770_Kode" under "0_element" (basert på din beskrivelse)
-            let v770Kode = null;
-            if (objectInfo.properties && objectInfo.properties["0_element"]) {
-                v770Kode = objectInfo.properties["0_element"]["V770_Kode"];
+            // Filtrer ut egenskapssett
+            const propertySets = Object.keys(objectInfo.properties || {})
+                .filter(pset => pset.startsWith("1_VOA_") && pset !== "1_VOA_NO");
+
+            console.log("Filtrerte egenskapssett:", propertySets);
+
+            // Hvis det finnes flere egenskapssett enn "1_VOA_Kum_83", ekskluder også denne
+            if (propertySets.length > 1 && propertySets.includes("1_VOA_Kum_83")) {
+                propertySets.splice(propertySets.indexOf("1_VOA_Kum_83"), 1);
             }
 
-            // Vis resultatet
-            if (v770Kode !== null) {
-                console.log("V770_Kode:", v770Kode);
-                document.getElementById("output").textContent = `V770_Kode: ${v770Kode}`;
-            } else {
-                console.log("Fant ikke V770_Kode på objektet.");
-                document.getElementById("output").textContent = "Ingen V770_Kode funnet.";
-            }
+            console.log("Endelig liste med egenskapssett:", propertySets);
+
+            // Vis resultatet i HTML
+            const outputElement = document.getElementById("nvdb-data");
+            outputElement.innerHTML = propertySets.length > 0
+                ? `<p>Egenskapssett: ${propertySets.join(", ")}</p>`
+                : "<p>Ingen relevante egenskapssett funnet.</p>";
 
         } catch (error) {
             console.error("Feil ved henting av objektinformasjon:", error);
-            document.getElementById("output").textContent = "En feil oppstod ved henting av objektinformasjon.";
+            document.getElementById("nvdb-data").innerHTML = "<p>En feil oppstod ved henting av objektinformasjon.</p>";
         }
     });
+}
+
+// Vent på at StreamBIM APIet blir tilgjengelig
+if (window.StreamBIM) {
+    StreamBIM.connectToParent().then(onStreamBimReady).catch(console.error);
+} else {
+    console.error("StreamBIM API er ikke tilgjengelig.");
 }
