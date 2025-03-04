@@ -12,7 +12,7 @@ function waitForStreamBIM(callback) {
 waitForStreamBIM(() => {
     console.log("StreamBIM API er lastet inn!");
 
-    StreamBIM.connectToParent().then(api => {
+    StreamBIM.connect().then(api => {
         console.log("StreamBIM er koblet til!");
 
         api.events.pickedObject.subscribe(async (result) => {
