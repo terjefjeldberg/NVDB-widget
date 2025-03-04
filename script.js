@@ -13,7 +13,7 @@ waitForStreamBIM(() => {
     console.log("StreamBIM API er lastet inn!");
 
     StreamBIM.connect({
-        pickObject: function(result){
+        pickObject: async function(result){
             if (!result.guid) return;
             console.log("pickedObject event:", result.guid);
 
