@@ -1,46 +1,34 @@
 function onStreamBimReady(api) {
     console.log("StreamBIM is ready!");
 
+    // Prøv å hindre StreamBIM fra å håndtere klikkene
+    if (api.interceptEvents) {
+        api.interceptEvents(true);
+        console.log("Intercepting StreamBIM events to prevent default handling.");
+    }
+
     api.events.pickedObject.subscribe(async (result) => {
         if (!result.guid) return; // Hopp over klikk på tomme områder
 
-        // Prøv å stoppe videre spredning av eventet
-        if (typeof result.preventDefault === "function") {
-            result.preventDefault();
-        }
-        if (typeof result.stopPropagation === "function") {
-            result.stopPropagation();
-        }
-
-        const objectId = result.guid;
-        console.log(`Objekt klikket: ${objectId}`);
+        console.log("pickedObject event:", result);
 
         try {
-            // Hent objektinformasjon
-            const objectInfo = await api.getObjectInfo(objectId);
+            const objectInfo = await api.getObjectInfo(result.guid);
             console.log("Objektinformasjon:", objectInfo);
 
-            // Finn relevante egenskapssett
             let propertySets = Object.keys(objectInfo.properties || {})
                 .filter(pset => pset.startsWith("1_VOA_") && pset !== "1_VOA_NO");
 
-            console.log("Filtrerte egenskapssett:", propertySets);
-
-            // Hvis det finnes flere egenskapssett enn "1_VOA_Kum_83", fjern også denne
             if (propertySets.length > 1 && propertySets.includes("1_VOA_Kum_83")) {
                 propertySets = propertySets.filter(pset => pset !== "1_VOA_Kum_83");
             }
 
             console.log("Endelig liste med egenskapssett:", propertySets);
 
-            // Vis resultatet i widgeten
             const outputElement = document.getElementById("nvdb-data");
             outputElement.innerHTML = propertySets.length > 0
                 ? `<p>Egenskapssett: ${propertySets.join(", ")}</p>`
                 : "<p>Ingen relevante egenskapssett funnet.</p>";
-
-            // Logg eventen (slik demo-widgeten gjør)
-            logEvent(`Objekt valgt: ${objectId}\nEgenskapssett: ${propertySets.join(", ")}`);
 
         } catch (error) {
             console.error("Feil ved henting av objektinformasjon:", error);
@@ -51,13 +39,5 @@ function onStreamBimReady(api) {
     console.log("Widget klar!");
 }
 
-// Funksjon for logging, inspirert av demo-widgeten
-function logEvent(text) {
-    const eventContainer = document.getElementById("nvdb-data");
-    const eventElement = document.createElement("p");
-    eventElement.textContent = text;
-    eventContainer.appendChild(eventElement);
-}
-
-// Koble til StreamBIM riktig slik demo-widgeten gjør
+// Koble til StreamBIM API
 StreamBIM.connectToParent().then(onStreamBimReady).catch(console.error);
