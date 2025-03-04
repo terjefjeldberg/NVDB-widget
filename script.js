@@ -5,7 +5,7 @@ function onStreamBimReady(api) {
     api.events.pickedObject.subscribe(async (result) => {
         if (!result.guid) return; // Hopp over klikk på tomme områder
 
-        const objectId = result.guid; // GUID for det klikkede objektet
+        const objectId = result.guid;
         console.log(`Objekt klikket: ${objectId}`);
 
         try {
@@ -32,6 +32,9 @@ function onStreamBimReady(api) {
                 ? `<p>Egenskapssett: ${propertySets.join(", ")}</p>`
                 : "<p>Ingen relevante egenskapssett funnet.</p>";
 
+            // Logg eventen, som i demo-widgeten
+            logEvent(`Objekt valgt: ${objectId}\nEgenskapssett: ${propertySets.join(", ")}`);
+
         } catch (error) {
             console.error("Feil ved henting av objektinformasjon:", error);
             document.getElementById("nvdb-data").innerHTML = "<p>En feil oppstod ved henting av objektinformasjon.</p>";
@@ -39,6 +42,14 @@ function onStreamBimReady(api) {
     });
 
     console.log("Widget klar!");
+}
+
+// Funksjon for logging, inspirert av demo-widgeten
+function logEvent(text) {
+    const eventContainer = document.getElementById("nvdb-data");
+    const eventElement = document.createElement("p");
+    eventElement.textContent = text;
+    eventContainer.appendChild(eventElement);
 }
 
 // Koble til StreamBIM riktig slik demo-widgeten gjør
