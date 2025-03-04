@@ -12,15 +12,13 @@ function waitForStreamBIM(callback) {
 waitForStreamBIM(() => {
     console.log("StreamBIM API er lastet inn!");
 
-    StreamBIM.connect().then(api => {
-        console.log("StreamBIM er koblet til!");
-
-        api.events.pickedObject.subscribe(async (result) => {
+    StreamBIM.connect({
+        pickObject: function(result){
             if (!result.guid) return;
-            console.log("pickedObject event:", result);
+            console.log("pickedObject event:", result.guid);
 
             try {
-                const objectInfo = await api.getObjectInfo(result.guid);
+                const objectInfo = await StreamBIM.getObjectInfo(result.guid);
                 console.log("Objektinformasjon:", objectInfo);
 
                 let propertySets = Object.keys(objectInfo.properties || {})
@@ -41,7 +39,7 @@ waitForStreamBIM(() => {
                 console.error("Feil ved henting av objektinformasjon:", error);
                 document.getElementById("nvdb-data").innerHTML = "<p>En feil oppstod ved henting av objektinformasjon.</p>";
             }
-        });
-
+    }).then( () => {
+        console.log("StreamBIM er koblet til!");
     }).catch(error => console.error("Feil ved tilkobling til StreamBIM:", error));
 });
