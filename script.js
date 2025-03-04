@@ -1,19 +1,26 @@
 function onStreamBimReady(api) {
     console.log("StreamBIM is ready!");
 
-    // Overstyr standardoppførsel for objektklikk
     api.events.pickedObject.subscribe(async (result) => {
         if (!result.guid) return; // Hopp over klikk på tomme områder
+
+        // Prøv å stoppe videre spredning av eventet
+        if (typeof result.preventDefault === "function") {
+            result.preventDefault();
+        }
+        if (typeof result.stopPropagation === "function") {
+            result.stopPropagation();
+        }
 
         const objectId = result.guid;
         console.log(`Objekt klikket: ${objectId}`);
 
         try {
-            // Hent egenskapsinformasjon fra API
+            // Hent objektinformasjon
             const objectInfo = await api.getObjectInfo(objectId);
             console.log("Objektinformasjon:", objectInfo);
 
-            // Finn egenskapssett som starter med "1_VOA_", men ekskluder "1_VOA_NO"
+            // Finn relevante egenskapssett
             let propertySets = Object.keys(objectInfo.properties || {})
                 .filter(pset => pset.startsWith("1_VOA_") && pset !== "1_VOA_NO");
 
@@ -32,7 +39,7 @@ function onStreamBimReady(api) {
                 ? `<p>Egenskapssett: ${propertySets.join(", ")}</p>`
                 : "<p>Ingen relevante egenskapssett funnet.</p>";
 
-            // Logg eventen, som i demo-widgeten
+            // Logg eventen (slik demo-widgeten gjør)
             logEvent(`Objekt valgt: ${objectId}\nEgenskapssett: ${propertySets.join(", ")}`);
 
         } catch (error) {
