@@ -3,6 +3,7 @@
     "description": "En widget som henter NVDB-data basert på klikk i 3D-modellen.",
     "version": "1.0",
     "author": "Terje Fjeldberg",
+    "entryPoint": "index.html",
     "permissions": ["streamBIMObjectClicked"],
     "interceptObjectClicks": true
-  }
+}
