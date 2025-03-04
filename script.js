@@ -19,14 +19,18 @@ waitForStreamBIM(() => {
 
             try {
                 const objectInfo = await StreamBIM.getObjectInfo(result.guid);
+                
+                // **Her logger vi hele objektet for å se strukturen**
                 console.log("Objektinformasjon:", objectInfo);
 
-                let propertySets = Object.keys(objectInfo.properties || {})
-                    .filter(pset => pset.startsWith("1_VOA_") && pset !== "1_VOA_NO");
+                // **Her logger vi properties for å se hvordan de er strukturert**
+                console.log("Rå properties:", objectInfo.properties);
 
-                if (propertySets.length > 1 && propertySets.includes("1_VOA_Kum_83")) {
-                    propertySets = propertySets.filter(pset => pset !== "1_VOA_Kum_83");
-                }
+                let propertySets = Object.keys(objectInfo.properties || {});
+                console.log("Alle tilgjengelige egenskapssett:", propertySets);
+
+                // Filtrer ut kun de relevante settene
+                propertySets = propertySets.filter(pset => pset.includes("VOA") && pset !== "1_VOA_NO");
 
                 console.log("Endelig liste med egenskapssett:", propertySets);
 
