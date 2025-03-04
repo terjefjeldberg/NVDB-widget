@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>NVDB Widget</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Sørger for at StreamBIM API er lastet først -->
     <script src="https://app.streambim.com/webapp/default/widget-api/streambim-widget-api.js"></script>
 </head>
 <body>
@@ -13,6 +14,7 @@
             <p>NVDB Data vil vises her.</p>
         </div>
     </div>
+    <!-- Last script.js til slutt for å sikre at API-et er definert -->
     <script src="script.js"></script>
 </body>
 </html>
