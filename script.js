@@ -1,32 +1,20 @@
 function onStreamBimReady(api) {
     console.log("StreamBIM is ready!");
 
-    // Abonner på endringer i objektvalg
-    api.events.selectionChanged.subscribe(async (selectedObjects) => {
-        if (selectedObjects.length === 0) {
-            console.log("Ingen objekt valgt.");
-            document.getElementById("output").textContent = "Ingen objekt valgt.";
-            return;
-        }
-
-        const objectId = selectedObjects[0].objectId;
+    // Abonner på 'pickedObject' event (som er dokumentert i demo-widgeten)
+    api.events.pickedObject.subscribe(async (result) => {
+        const objectId = result.guid; // GUID for det klikkede objektet
 
         try {
-            // Hent egenskapene til det valgte objektet
-            const properties = await api.getProperties(objectId);
-            console.log("Egenskaper for objekt:", properties);
+            // Hent objektinformasjon (dokumentert i demo-widgeten)
+            const objectInfo = await api.getObjectInfo(objectId);
+            console.log("Objektinformasjon:", objectInfo);
 
-            // Finn "V770_Kode" under "0_element"
+            // Finn "V770_Kode" under "0_element" (basert på din beskrivelse)
             let v770Kode = null;
-            properties.forEach(propSet => {
-                if (propSet.name === "0_element") {
-                    propSet.properties.forEach(prop => {
-                        if (prop.name === "V770_Kode") {
-                            v770Kode = prop.value;
-                        }
-                    });
-                }
-            });
+            if (objectInfo.properties && objectInfo.properties["0_element"]) {
+                v770Kode = objectInfo.properties["0_element"]["V770_Kode"];
+            }
 
             // Vis resultatet
             if (v770Kode !== null) {
@@ -38,8 +26,8 @@ function onStreamBimReady(api) {
             }
 
         } catch (error) {
-            console.error("Feil ved henting av egenskaper:", error);
-            document.getElementById("output").textContent = "En feil oppstod ved henting av egenskaper.";
+            console.error("Feil ved henting av objektinformasjon:", error);
+            document.getElementById("output").textContent = "En feil oppstod ved henting av objektinformasjon.";
         }
     });
 }
