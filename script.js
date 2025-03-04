@@ -39,7 +39,10 @@ waitForStreamBIM(() => {
                 console.error("Feil ved henting av objektinformasjon:", error);
                 document.getElementById("nvdb-data").innerHTML = "<p>En feil oppstod ved henting av objektinformasjon.</p>";
             }
+        }
     }).then( () => {
         console.log("StreamBIM er koblet til!");
-    }).catch(error => console.error("Feil ved tilkobling til StreamBIM:", error));
+    }).catch(error => {
+        console.error("Feil ved tilkobling til StreamBIM:", error)
+    });
 });
