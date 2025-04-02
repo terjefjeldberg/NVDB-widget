@@ -1,20 +1,78 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>OAuth Callback</title>
+    <title>OAuth Token</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .token-container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .copy-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .copy-button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>OAuth Token</h1>
+    <div id="token-container" class="token-container">
+        <p>Henter token...</p>
+    </div>
+    <button id="copy-button" class="copy-button" style="display: none;">Kopier token</button>
+    <p id="status"></p>
+
     <script>
-        // Hent token fra URL-hashen
+        // Hent token fra URL hash
         const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
         const accessToken = params.get('access_token');
-        
+
         if (accessToken) {
-            // Send token tilbake til hovedsiden
-            window.opener.postMessage({ hash: window.location.hash }, '*');
+            // Send token tilbake til hovedvinduet
+            window.opener.postMessage({ hash: window.location.hash }, 'https://terjefjeldberg.github.io');
+            
+            // Vis token på siden
+            document.getElementById('token-container').innerHTML = `<pre>${accessToken}</pre>`;
+            document.getElementById('copy-button').style.display = 'block';
+            document.getElementById('status').textContent = 'Token mottatt! Du kan nå lukke dette vinduet.';
+        } else {
+            // Sjekk for feilmeldinger
+            const error = params.get('error');
+            const errorDescription = params.get('error_description');
+            
+            if (error) {
+                document.getElementById('token-container').innerHTML = `
+                    <p>Feil: ${error}</p>
+                    <p>${errorDescription || ''}</p>
+                `;
+                document.getElementById('status').textContent = 'Det oppstod en feil under autentisering.';
+            } else {
+                document.getElementById('token-container').innerHTML = '<p>Ingen token funnet i URL.</p>';
+                document.getElementById('status').textContent = 'Ingen token mottatt. Vennligst prøv igjen.';
+            }
         }
+
+        // Kopier token når knappen klikkes
+        document.getElementById('copy-button').addEventListener('click', () => {
+            navigator.clipboard.writeText(accessToken).then(() => {
+                document.getElementById('status').textContent = 'Token kopiert!';
+            });
+        });
     </script>
-</head>
-<body>
-    <p>Autentisering fullført. Du kan lukke dette vinduet.</p>
 </body>
 </html> 

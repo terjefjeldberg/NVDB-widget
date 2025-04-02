@@ -14,11 +14,12 @@ function waitForStreamBIM(callback) {
 
 // BSDD API konfigurasjon
 const bsddConfig = {
-    authUrl: 'https://authentication.buildingsmart.org/buildingsmartservices.onmicrosoft.com/b2c_1a_signupsignin_c/oauth2/v2.0/authorize',
-    clientId: '144e037f-6a71-41bb-8ce1-4e8554520756',
-    redirectUri: 'https://test.bsdd.buildingsmart.org/swagger/oauth2-redirect.html',
-    scope: 'https://api.buildingsmart.org/bsdd/v1/.default',
-    responseType: 'token'
+    authUrl: 'https://authentication.buildingsmart.org/tfp/buildingsmartservices.onmicrosoft.com/b2c_1a_signupsignin_c',
+    clientId: '4aba821f-d4ff-498b-a462-c2837dbbba70',
+    redirectUri: 'https://terjefjeldberg.github.io/NVDB-widget/oauth-callback.html',
+    scope: 'https://buildingsmartservices.onmicrosoft.com/api/read',
+    responseType: 'token',
+    bsddApiUrl: 'https://test.bsdd.buildingsmart.org'
 };
 
 // Hjelpefunksjon for å hente access token
@@ -76,7 +77,7 @@ function getBsddToken() {
 async function searchBsdd(propertyName) {
     try {
         const token = await getBsddToken();
-        const response = await fetch('https://api.buildingsmart.org/bsdd/v1/search', {
+        const response = await fetch(`${bsddConfig.bsddApiUrl}/api/v1/search`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
