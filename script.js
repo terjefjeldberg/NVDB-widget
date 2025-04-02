@@ -16,52 +16,62 @@ function waitForStreamBIM(callback) {
 const bsddConfig = {
     authUrl: 'https://authentication.buildingsmart.org/buildingsmartservices.onmicrosoft.com/b2c_1a_signupsignin_c/oauth2/v2.0/authorize',
     clientId: '144e037f-6a71-41bb-8ce1-4e8554520756',
-    redirectUri: 'https://terje.github.io/nvdb-widget/oauth-callback.html', // Endre dette til din faktiske GitHub Pages URL
+    redirectUri: 'https://terjefjeldberg.github.io/NVDB-widget/oauth-callback.html',
     scope: 'openid profile email',
     responseType: 'token'
 };
 
 // Hjelpefunksjon for å hente access token
-async function getBsddToken() {
-    // Sjekk om vi allerede har et gyldig token i localStorage
-    const token = localStorage.getItem('bsdd_token');
-    const tokenExpiry = localStorage.getItem('bsdd_token_expiry');
-    
-    if (token && tokenExpiry && new Date().getTime() < parseInt(tokenExpiry)) {
-        return token;
-    }
-
-    try {
-        const response = await fetch(bsddConfig.authUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams({
-                grant_type: 'client_credentials',
-                client_id: bsddConfig.clientId,
-                client_secret: bsddConfig.clientSecret,
-                scope: bsddConfig.scope
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Autentisering feilet: ${response.status}`);
+function getBsddToken() {
+    return new Promise((resolve, reject) => {
+        // Sjekk om vi allerede har et gyldig token i localStorage
+        const token = localStorage.getItem('bsdd_token');
+        const tokenExpiry = localStorage.getItem('bsdd_token_expiry');
+        
+        if (token && tokenExpiry && new Date().getTime() < parseInt(tokenExpiry)) {
+            resolve(token);
+            return;
         }
 
-        const data = await response.json();
-        const accessToken = data.access_token;
+        // Opprett en popup for autentisering
+        const width = 600;
+        const height = 600;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
         
-        // Lagre token med utløpstid
-        const expiryTime = new Date().getTime() + (data.expires_in * 1000);
-        localStorage.setItem('bsdd_token', accessToken);
-        localStorage.setItem('bsdd_token_expiry', expiryTime.toString());
+        const popup = window.open('', 'bsdd_auth', 
+            `width=${width},height=${height},left=${left},top=${top}`);
+
+        // Sett opp lytter for token
+        window.addEventListener('message', function handleToken(event) {
+            if (event.origin !== 'https://terjefjeldberg.github.io') return;
+            
+            const hashParams = new URLSearchParams(event.data.hash.substring(1));
+            const accessToken = hashParams.get('access_token');
+            
+            if (accessToken) {
+                window.removeEventListener('message', handleToken);
+                popup.close();
+                
+                // Lagre token med utløpstid
+                const expiryTime = new Date().getTime() + (60 * 60 * 1000);
+                localStorage.setItem('bsdd_token', accessToken);
+                localStorage.setItem('bsdd_token_expiry', expiryTime.toString());
+                
+                resolve(accessToken);
+            }
+        });
+
+        // Konstruer auth URL
+        const authUrl = new URL(bsddConfig.authUrl);
+        authUrl.searchParams.append('client_id', bsddConfig.clientId);
+        authUrl.searchParams.append('redirect_uri', bsddConfig.redirectUri);
+        authUrl.searchParams.append('scope', bsddConfig.scope);
+        authUrl.searchParams.append('response_type', bsddConfig.responseType);
         
-        return accessToken;
-    } catch (error) {
-        console.error('Feil ved henting av token:', error);
-        throw error;
-    }
+        // Last popup med auth URL
+        popup.location.href = authUrl.toString();
+    });
 }
 
 // Hjelpefunksjon for å søke i bsdd API
