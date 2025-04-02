@@ -16,7 +16,7 @@ function waitForStreamBIM(callback) {
 const bsddConfig = {
     authUrl: 'https://authentication.buildingsmart.org/buildingsmartservices.onmicrosoft.com/b2c_1a_signupsignin_c/oauth2/v2.0/authorize',
     clientId: '144e037f-6a71-41bb-8ce1-4e8554520756',
-    redirectUri: 'https://terjefjeldberg.github.io/NVDB-widget/oauth-callback.html',
+    redirectUri: 'https://test.bsdd.buildingsmart.org/swagger/oauth2-redirect.html',
     scope: 'openid profile email',
     responseType: 'token'
 };
