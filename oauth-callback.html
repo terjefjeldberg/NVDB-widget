@@ -26,6 +26,9 @@
         .copy-button:hover {
             background: #0056b3;
         }
+        .error {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -35,33 +38,62 @@
     </div>
     <button id="copy-button" class="copy-button" style="display: none;">Kopier token</button>
     <p id="status"></p>
+    <div id="debug" style="display: none;"></div>
 
     <script>
+        // Aktiver debug logging
+        const debug = document.getElementById('debug');
+        debug.style.display = 'block';
+        
+        function log(message) {
+            const p = document.createElement('p');
+            p.textContent = message;
+            debug.appendChild(p);
+            console.log(message);
+        }
+
+        log('OAuth callback side lastet');
+        log('URL: ' + window.location.href);
+        log('Hash: ' + window.location.hash);
+
         // Hent token fra URL hash
         const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
         const accessToken = params.get('access_token');
 
+        log('Access token: ' + (accessToken ? 'Funnet' : 'Ikke funnet'));
+
         if (accessToken) {
-            // Send token tilbake til hovedvinduet
-            window.opener.postMessage({ hash: window.location.hash }, 'https://terjefjeldberg.github.io');
-            
-            // Vis token på siden
-            document.getElementById('token-container').innerHTML = `<pre>${accessToken}</pre>`;
-            document.getElementById('copy-button').style.display = 'block';
-            document.getElementById('status').textContent = 'Token mottatt! Du kan nå lukke dette vinduet.';
+            try {
+                // Send token tilbake til hovedvinduet
+                const origin = window.location.origin;
+                log('Sender token tilbake til: ' + origin);
+                window.opener.postMessage({ hash: window.location.hash }, origin);
+                
+                // Vis token på siden
+                document.getElementById('token-container').innerHTML = `<pre>${accessToken}</pre>`;
+                document.getElementById('copy-button').style.display = 'block';
+                document.getElementById('status').textContent = 'Token mottatt! Du kan nå lukke dette vinduet.';
+            } catch (error) {
+                log('Feil ved sending av token: ' + error.message);
+                document.getElementById('token-container').innerHTML = `
+                    <p class="error">Feil ved sending av token: ${error.message}</p>
+                `;
+            }
         } else {
             // Sjekk for feilmeldinger
             const error = params.get('error');
             const errorDescription = params.get('error_description');
             
             if (error) {
+                log('Feil mottatt: ' + error);
                 document.getElementById('token-container').innerHTML = `
-                    <p>Feil: ${error}</p>
+                    <p class="error">Feil: ${error}</p>
                     <p>${errorDescription || ''}</p>
                 `;
                 document.getElementById('status').textContent = 'Det oppstod en feil under autentisering.';
             } else {
+                log('Ingen token eller feil funnet i URL');
                 document.getElementById('token-container').innerHTML = '<p>Ingen token funnet i URL.</p>';
                 document.getElementById('status').textContent = 'Ingen token mottatt. Vennligst prøv igjen.';
             }
@@ -71,6 +103,9 @@
         document.getElementById('copy-button').addEventListener('click', () => {
             navigator.clipboard.writeText(accessToken).then(() => {
                 document.getElementById('status').textContent = 'Token kopiert!';
+            }).catch(error => {
+                log('Feil ved kopiering av token: ' + error.message);
+                document.getElementById('status').textContent = 'Kunne ikke kopiere token.';
             });
         });
     </script>
