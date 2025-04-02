@@ -42,26 +42,6 @@ function getBsddToken() {
         const popup = window.open('', 'bsdd_auth', 
             `width=${width},height=${height},left=${left},top=${top}`);
 
-        // Sett opp lytter for token
-        window.addEventListener('message', function handleToken(event) {
-            if (event.origin !== 'https://terjefjeldberg.github.io') return;
-            
-            const hashParams = new URLSearchParams(event.data.hash.substring(1));
-            const accessToken = hashParams.get('access_token');
-            
-            if (accessToken) {
-                window.removeEventListener('message', handleToken);
-                popup.close();
-                
-                // Lagre token med utløpstid
-                const expiryTime = new Date().getTime() + (60 * 60 * 1000);
-                localStorage.setItem('bsdd_token', accessToken);
-                localStorage.setItem('bsdd_token_expiry', expiryTime.toString());
-                
-                resolve(accessToken);
-            }
-        });
-
         // Konstruer auth URL
         const authUrl = new URL(bsddConfig.authUrl);
         authUrl.searchParams.append('client_id', bsddConfig.clientId);
@@ -71,6 +51,24 @@ function getBsddToken() {
         
         // Last popup med auth URL
         popup.location.href = authUrl.toString();
+
+        // Sett opp en lytter for når popup-vinduet lukkes
+        const checkPopup = setInterval(() => {
+            if (popup.closed) {
+                clearInterval(checkPopup);
+                // Spør brukeren om tokenet
+                const token = prompt('Vennligst lim inn tokenet du fikk fra buildingsmart:');
+                if (token) {
+                    // Lagre token med utløpstid
+                    const expiryTime = new Date().getTime() + (60 * 60 * 1000);
+                    localStorage.setItem('bsdd_token', token);
+                    localStorage.setItem('bsdd_token_expiry', expiryTime.toString());
+                    resolve(token);
+                } else {
+                    reject(new Error('Ingen token angitt'));
+                }
+            }
+        }, 500);
     });
 }
 
